@@ -3,32 +3,35 @@ import random
 #load the data of each file
 x = np.loadtxt("../HousingData/X.txt")
 y = np.loadtxt("../HousingData/Y.txt")
+number_of_betas = 4
+bits_per_beta = 20
+entire_vector_size = number_of_betas * bits_per_beta
+num_rows,_ = np.shape(x)
 
 def generate_random_bits_vector():
-
-    number_of_betas = 4
-    bits_per_beta = 20
-    entire_vector_size = number_of_betas * bits_per_beta
-    random_betas= []
-    low = 0
-    high = 2**bits_per_beta
+    betas_vector = []
     for beta in range(number_of_betas):
-        # the following provides a range for rang between (-2^19 - 2^19)
-        # Because my entire beta vector size is 2^20 bits combos
-        random_number = random.randint(low, high+1) - (2**19)
-        random_betas.append(format(random_number,"021b"))
-    #format the binary with w1 bits, one will be used for negative sign
-    # if there is no negative, anyway i will be only using 20 bits and ignoring 
-    #first one example-> -1011 - > i will use 1011 for neighbors finding
-    #                    01110 -> i will use 1110 for neighbors finding
-    bin_arr = np.array(random_betas)
-    return bin_arr
+        random_number = np.random.choice([0,1], size =(20))
+        betas_vector.append(list(random_number))
+    return betas_vector
 
-vector = generate_random_bits_vector()
-print(vector)
-# def calculate_MSE():
+def convert_binary_betas_to_numbers(betas_vector):
+    # holds the final betas
+    betas = []
+    for binary_beta in betas_vector:
+        #concatenate the binaries to be treated as one binary number
+        string_betas= "".join(map(str, binary_beta))
+        #convert the base 2 binary number to integer
+        beta = int(string_betas, 2)
+        #subtract by 2^19 and divide by 10 to set the range i decided for my betas 
+        beta -= (2**19)
+        beta/=10
+        betas.append(beta)
+    return betas
 
-def calc_MSE(x, y, B, num_rows):
+def calc_MSE(x, y, betas, num_rows):
+    B = convert_binary_betas_to_numbers(betas)
+    B = np.array(B) #convert it to numpy array
     #RSS = (Y - Y')^2 but since we can't do square, we use transpose multiplication
     error = (y - x @ B ).conjugate().transpose() @ (y - x @ B)
     MSE = error/num_rows
@@ -36,4 +39,33 @@ def calc_MSE(x, y, B, num_rows):
     root_MSE = MSE **0.5 
     return root_MSE
 
+def neighbor_producer(betas_vector):
+    '''
+        A function that finds all the neighbors of a vector
+        If a vector size is 80 bits, then there are 80 
+        neighbors since at a time we can only change one bit
+    '''
+    for beta in range(number_of_betas):
+        for bit in range(bits_per_beta):
+            new_beta = betas_vector[beta][:]
+            new_beta[bit] ^= 1
+            neighbor = betas_vector[:]
+            neighbor[beta] = new_beta
+            MSE = calc_MSE(x, y, neighbor, num_rows)
+            yield neighbor 
+        
 
+
+generation = 3000
+local_min = False
+restart = 100
+for value in range(restart):
+    binary_beta_vector = generate_random_bits_vector()
+    start_generation = 1
+    neighbor = neighbor_producer(binary_beta_vectora)
+    while start_generation <= 3000 or local_min == False:
+
+
+# neighbor = neighbor_producer(vector)
+# for x in range(80):
+#    print(next(neighbor),"\n\n")
