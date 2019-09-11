@@ -39,33 +39,51 @@ def calc_MSE(x, y, betas, num_rows):
     root_MSE = MSE **0.5 
     return root_MSE
 
-def neighbor_producer(betas_vector):
+def find_all_neighbors(betas_vector):
     '''
         A function that finds all the neighbors of a vector
         If a vector size is 80 bits, then there are 80 
         neighbors since at a time we can only change one bit
     '''
+    all_neighbors = []
     for beta in range(number_of_betas):
         for bit in range(bits_per_beta):
             new_beta = betas_vector[beta][:]
             new_beta[bit] ^= 1
             neighbor = betas_vector[:]
             neighbor[beta] = new_beta
-            MSE = calc_MSE(x, y, neighbor, num_rows)
-            yield neighbor 
-        
+            all_neighbors.append(neighbor)
+    return all_neighbors
+
+def find_the_fittest_neighbor(neighbors):
+    every_neighbor_mse = []
+    for neighbor in neighbors:
+        mse = calc_MSE(x, y, neighbor, num_rows)
+        every_neighbor_mse.append(mse)
+    lowest_mse = min(every_neighbor_mse) 
+    neighbor_with_lowest_mse_index = every_neighbor_mse.index(lowest_mse)
+    fittest = neighbors[neighbor_with_lowest_mse_index]
+    return fittest, lowest_mse
 
 
-generation = 3000
-local_min = False
+generation = 30000
 restart = 100
 for value in range(restart):
+    local_min = False
     binary_beta_vector = generate_random_bits_vector()
-    start_generation = 1
-    neighbor = neighbor_producer(binary_beta_vectora)
-    while start_generation <= 3000 or local_min == False:
-
-
-# neighbor = neighbor_producer(vector)
-# for x in range(80):
-#    print(next(neighbor),"\n\n")
+    current_mse = calc_MSE(x,y, binary_beta_vector, num_rows)
+    generation_count = 1
+    while generation_count <= generation and local_min == False:
+        print("generation count --> ", generation_count,"\n")
+        all_neighbors = find_all_neighbors(binary_beta_vector)
+        fittest_neighbor, best_neighbor_mse = find_the_fittest_neighbor(all_neighbors)
+        if best_neighbor_mse > current_mse:
+            print("------in local min-----")
+            print(current_mse)
+            print("current-mse", best_neighbor_mse)
+            print("best_so far",current_mse)
+            local_min = True
+            continue
+        binary_beta_vector = fittest_neighbor
+        current_mse = best_neighbor_mse
+        generation_count+=1
