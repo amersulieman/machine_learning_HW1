@@ -67,6 +67,7 @@ def input_files_read(exit_cond_files, x_file, y_file):
 
 def hill_climbing(num_rows, number_of_betas, bits_per_beta, generations, restarts):
     entire_vector_size = number_of_betas * bits_per_beta
+    results = ""
     for value in range(restarts):
         local_min = False
         current_betas_vector = generate_random_betas_vector(
@@ -75,7 +76,6 @@ def hill_climbing(num_rows, number_of_betas, bits_per_beta, generations, restart
         generation_count = 1
         while generation_count <= generations and local_min == False:
             found_better_neighbor = False
-            # print("generation count --> ", generation_count, "\n")
             neighbor_generator = get_neighbor(
                 bits_per_beta, number_of_betas, current_betas_vector)
             for bit in range(entire_vector_size):
@@ -86,16 +86,21 @@ def hill_climbing(num_rows, number_of_betas, bits_per_beta, generations, restart
                     current_mse = neighbor_fitness
                     found_better_neighbor = True
             if not found_better_neighbor:
-                # print("Reached local min")
-                # print("Betas --> ", convert_binary_betas_to_numbers(current_beta_vector))
-                # print("Local MSE--> ", current_mse)
+                # for printing purposes
+                current_betas_vector = ", ".join(
+                    [str(beta) for beta in current_betas_vector])
+                results += "MSE = {:<20} Betas {}\n".format(
+                    current_mse, current_betas_vector)
+                # sets local min that we found it
                 local_min = True
             generation_count += 1
+    return results
 
 
 x_file = path.abspath("../HousingData/X.txt")
 y_file = path.abspath("../HousingData/Y.txt")
 exit_file = path.abspath("./EXIT_CONDITIONs.txt")
+out_put_file = path.abspath("./Output_HillClimbing.txt")
 needed_data = input_files_read(exit_file, x_file, y_file)
 # ALL THE DATA NEEDED FOR THE ALGORITHM TO WORK
 x = needed_data[0]              # x matrix
@@ -107,5 +112,9 @@ generations = int(exit_conditions[0])
 restarts = int(exit_conditions[1])
 bits_per_beta = 20  # random beta generation with how many bits each can have
 
-hill_climbing(num_rows, number_of_betas,
-              bits_per_beta, generations, restarts)
+algorithm_data = hill_climbing(num_rows, number_of_betas,
+                               bits_per_beta, generations, restarts)
+
+with open(out_put_file, "w") as out_file:
+    out_file.write("{:^50}\n".format("Best MSE Per Restart"))
+    out_file.write(algorithm_data)
