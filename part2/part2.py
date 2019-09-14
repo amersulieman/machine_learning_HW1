@@ -28,7 +28,7 @@ def calc_mse(x, y, num_rows, beta_vector):
     MSE = error/num_rows
     # Now we can take the root of our MSE since we squared it to avoid errors
     root_MSE = MSE ** 0.5
-    return root_MSE
+    return B, root_MSE
 
 
 def get_neighbor(bits_per_beta, number_of_betas, current_betas_vector):
@@ -72,7 +72,9 @@ def hill_climbing(num_rows, number_of_betas, bits_per_beta, generations, restart
         local_min = False
         current_betas_vector = generate_random_betas_vector(
             number_of_betas, bits_per_beta)
-        current_mse = calc_mse(x, y, num_rows, current_betas_vector)
+        betas_in_my_range, current_mse = calc_mse(
+            x, y, num_rows, current_betas_vector)
+        best_betas_so_far = betas_in_my_range
         generation_count = 1
         while generation_count <= generations and local_min == False:
             found_better_neighbor = False
@@ -80,15 +82,17 @@ def hill_climbing(num_rows, number_of_betas, bits_per_beta, generations, restart
                 bits_per_beta, number_of_betas, current_betas_vector)
             for bit in range(entire_vector_size):
                 neighbor = next(neighbor_generator)
-                neighbor_fitness = calc_mse(x, y, num_rows, neighbor)
+                betas_in_my_range, neighbor_fitness = calc_mse(
+                    x, y, num_rows, neighbor)
                 if neighbor_fitness < current_mse:
                     current_betas_vector = neighbor
                     current_mse = neighbor_fitness
+                    best_betas_so_far = betas_in_my_range
                     found_better_neighbor = True
             if not found_better_neighbor:
                 # for printing purposes
                 current_betas_vector = ", ".join(
-                    [str(beta) for beta in current_betas_vector])
+                    [str(beta) for beta in best_betas_so_far])
                 results += "MSE = {:<20} Betas {}\n".format(
                     current_mse, current_betas_vector)
                 # sets local min that we found it
