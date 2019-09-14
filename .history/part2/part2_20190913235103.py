@@ -65,19 +65,19 @@ def input_files_read(exit_cond_files, x_file, y_file):
     return x, y, num_rows, num_columns, exit_conditions
 
 
-def hill_climbing(num_rows, number_of_betas, bits_per_beta, generations, restarts):
-    entire_vector_size = number_of_betas * bits_per_beta
+def hill_climbing(num_rows, num_of_betas, bits_per_beta, generations, restarts):
+    entire_vector_size = num_of_betas * bits_per_beta
     for value in range(restarts):
         local_min = False
         current_betas_vector = generate_random_betas_vector(
-            number_of_betas, bits_per_beta)
+            num_of_betas, bits_per_beta)
         current_mse = calc_mse(x, y, num_rows, current_betas_vector)
         generation_count = 1
         while generation_count <= generations and local_min == False:
             found_better_neighbor = False
             # print("generation count --> ", generation_count, "\n")
             neighbor_generator = get_neighbor(
-                bits_per_beta, number_of_betas, current_betas_vector)
+                bits_per_beta, num_of_betas, current_betas_vector)
             for bit in range(entire_vector_size):
                 neighbor = next(neighbor_generator)
                 neighbor_fitness = calc_mse(x, y, num_rows, neighbor)
@@ -101,11 +101,11 @@ needed_data = input_files_read(exit_file, x_file, y_file)
 x = needed_data[0]              # x matrix
 y = needed_data[1]              # y matrix
 num_rows = needed_data[2]       # number of rows for MSE
-number_of_betas = needed_data[3]   # number of betas to for features
+num_of_betas = needed_data[3]   # number of betas to for features
 exit_conditions = needed_data[4]
 generations = int(exit_conditions[0])
 restarts = int(exit_conditions[1])
 bits_per_beta = 20  # random beta generation with how many bits each can have
 
-hill_climbing(num_rows, number_of_betas,
-              bits_per_beta, generations, restarts)
+hill_climbing(num_rows, nums_of_betas,
+              entire_vector_size, generations, restarts)

@@ -107,5 +107,5 @@ generations = int(exit_conditions[0])
 restarts = int(exit_conditions[1])
 bits_per_beta = 20  # random beta generation with how many bits each can have
 
-hill_climbing(num_rows, number_of_betas,
-              bits_per_beta, generations, restarts)
+hill_climbing(num_rows, nums_of_betas,
+              entire_vector_size, generations, restarts)
